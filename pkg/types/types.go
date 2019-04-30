@@ -31,6 +31,7 @@ type ResourceConfig struct {
 	RootDevices  []string `json:"rootDevices"`          // list of PCI address of root devices e.g. "0000:05:00.0",
 	DeviceType   string   `json:"deviceType,omitempty"` // Device driver type of the device
 	SriovMode    bool     `json:"sriovMode,omitempty"`  // Whether devices have SRIOV virtual function capabilities or not
+	MdevMode     bool     `json:"mdevMode,omitempty"`   // Whether devices have Mediate device capabilities or not
 }
 
 // ResourceConfList is list of ResourceConfig

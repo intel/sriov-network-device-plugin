@@ -30,8 +30,9 @@ var (
 )
 
 const (
-	totalVfFile      = "sriov_totalvfs"
-	configuredVfFile = "sriov_numvfs"
+	totalVfFile        = "sriov_totalvfs"
+	configuredVfFile   = "sriov_numvfs"
+	configuredMdevFile = "mdev_supported_types"
 )
 
 // GetVFconfigured returns number of VF configured for a PF
@@ -47,6 +48,16 @@ func GetVFconfigured(pf string) int {
 		return 0
 	}
 	return numConfiguredVFs
+}
+
+// GetMDEVconfigured returns whether MDEV supported in this PF
+func GetMDEVconfigured(pf string) bool {
+	configuredMDEVPath := filepath.Join(sysBusPci, pf, configuredMdevFile)
+	_, err := os.Lstat(configuredMDEVPath)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 // GetVFList returns a List containing PCI addr for all VF discovered in a given PF
@@ -75,6 +86,35 @@ func GetVFList(pf string) (vfList []string, err error) {
 				vfLink := filepath.Base(linkName)
 				vfList = append(vfList, vfLink)
 			}
+		}
+	}
+	return
+}
+
+// GetMDEVList returns a List containing PCI addr for all MDEV discovered in a given PF
+func GetMDEVList(pf string) (mdevList []string, err error) {
+	mdevList = make([]string, 0)
+	pfDir := filepath.Join(sysBusPci, pf)
+	_, err = os.Lstat(pfDir)
+	if err != nil {
+		err = fmt.Errorf("Error. Could not get PF directory information for device: %s, Err: %v", pf, err)
+		return
+	}
+
+	mdevDirs, err := filepath.Glob(filepath.Join(pfDir, "*-*-*-*-*"))
+
+	if err != nil {
+		err = fmt.Errorf("error reading MDEV directories %v", err)
+		return
+	}
+
+	//Read all MDEV directory and get add MDEV PCI addr to the mdevList
+	for _, dir := range mdevDirs {
+		_, err := os.Lstat(dir)
+		if err == nil {
+			mdevUUID := filepath.Base(dir)
+			mdevList = append(mdevList, pf+"/"+mdevUUID)
+
 		}
 	}
 	return
@@ -165,6 +205,14 @@ func deviceExist(addr string) error {
 // SriovConfigured returns true if sriov_numvfs reads > 0 else false
 func SriovConfigured(addr string) bool {
 	if GetVFconfigured(addr) > 0 {
+		return true
+	}
+	return false
+}
+
+// MdevConfigured returns true if mdev_supported_types existed else false
+func MdevConfigured(addr string) bool {
+	if GetMDEVconfigured(addr) {
 		return true
 	}
 	return false

@@ -56,6 +56,7 @@ func (rp *resourcePool) DiscoverDevices() error {
 	glog.Infof("Discovering devices with config: %+v", rp.config)
 	deviceList := make([]string, 0)
 	SriovMode := rp.config.SriovMode
+	MdevMode := rp.config.MdevMode
 
 	if SriovMode {
 
@@ -77,6 +78,24 @@ func (rp *resourcePool) DiscoverDevices() error {
 				if newList, err := utils.GetVFList(pf); err == nil {
 					deviceList = append(deviceList, newList...)
 				}
+			}
+		}
+	} else if MdevMode {
+
+		// Discover VFs
+		for _, pf := range rp.config.RootDevices {
+
+			supportConfiguredMDEVs := utils.GetMDEVconfigured(pf)
+			glog.Infof("Number of Configured VFs for device %v is %d", pf, supportConfiguredMDEVs)
+
+			if !supportConfiguredMDEVs {
+				glog.Errorf("Error. Mediated Device are not configured for the device: %s", pf)
+				return fmt.Errorf("Mediated Device are not configured for the device: %s", pf)
+			}
+
+			if newList, err := utils.GetMDEVList(pf); err == nil {
+				fmt.Println("Found new MDEV device:", newList)
+				deviceList = append(deviceList, newList...)
 			}
 		}
 	} else { // PFs only

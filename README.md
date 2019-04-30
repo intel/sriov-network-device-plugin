@@ -24,6 +24,7 @@
       - [Verify Pod network interfaces](#verify-pod-network-interfaces)
       - [Verify Pod routing table](#verify-pod-routing-table)
     - [Pod device information](#pod-device-information)
+- [New mdev device plugin](#new-mdev-device-plugin)
 - [Issues and Contributing](#issues-and-contributing)
 
 ## SRIOV Network Device Plugin
@@ -300,6 +301,29 @@ The allocated device information are exported in Container's environment variabl
 
 For example, if 2 devices are allocated from `intel.com/sriov` extended resource then the allocated device information will be found in following env variable:
 `PCIDEVICE_INTEL_COM_SRIOV=0000:03:02.1,0000:03:04.3`
+
+## New mdev device plugin
+
+We extended this Kubernetes device plugin for mediate device (mdev) support, which is a recent addition to linux vfio framework that is currently used by, e.g. Intel Graphics Virtualization (GVT-g).
+
+This plugin also creates device plugin endpoints based on the configurations given in file `/etc/pcidp/config.json`. This configuration file is in json format as shown below (with "mdevMode" parameter is true).
+
+```json
+{
+    "resourceList":
+    [
+        {
+            "resourceName": "vgpu",
+            "rootDevices": [ "00:02.0" ],
+            "mdevMode": true,
+            "deviceType": "vfio"
+        }
+    ]
+}
+
+```
+
+It will discover the root devices corresponding mediate devices by UUID. The you can follow the same steps of SRIOV device plugin to create Pod with mdev devices.
 
 ## Issues and Contributing
 

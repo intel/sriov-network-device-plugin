@@ -154,6 +154,17 @@ func (rm *resourceManager) validConfigs() bool {
 			}
 		}
 
+		// validate MDEV
+		if conf.MdevMode {
+			// Check that MDEV devices are created for all root devices
+			for _, addr := range pciAddrs {
+				if configured := utils.MdevConfigured(addr); !configured {
+					glog.Errorf("no Mdev configured for root device %s", addr)
+					return false
+				}
+			}
+		}
+
 		// [To-Do]: Validate deviceType
 
 		resourceName[conf.ResourceName] = conf.ResourceName

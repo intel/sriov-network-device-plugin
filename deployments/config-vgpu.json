@@ -1,0 +1,11 @@
+{
+    "resourceList":
+    [
+        {
+            "resourceName": "vgpu",
+            "rootDevices": [ "00:02.0" ],
+            "mdevMode": true,
+            "deviceType": "vfio"
+        }
+    ]
+}
