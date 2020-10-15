@@ -16,10 +16,10 @@ package types
 
 import (
 	"encoding/json"
-	vdpa "github.com/redhat-virtio-net/govdpa/pkg/kvdpa"
 
 	"github.com/jaypipes/ghw"
 	nettypes "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
+	vdpa "github.com/redhat-virtio-net/govdpa/pkg/kvdpa"
 	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"
 )
 
@@ -108,6 +108,7 @@ type NetDeviceSelectors struct {
 	DDPProfiles  []string `json:"ddpProfiles,omitempty"`
 	IsRdma       bool     // the resource support rdma
 	NeedVhostNet bool     // share vhost-net along the selected ressource
+	VdpaType     VdpaType `json:"vdpaType,omitempty"`
 }
 
 // AccelDeviceSelectors contains accelerator(FPGA etc.) related selectors fields
@@ -198,6 +199,7 @@ type PciNetDevice interface {
 	GetLinkType() string
 	GetRdmaSpec() RdmaSpec
 	GetDDPProfiles() string
+	GetVdpaDevice() VdpaDevice
 }
 
 // AccelDevice extends PciDevice interface

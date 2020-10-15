@@ -203,6 +203,21 @@ func (np *netDeviceProvider) GetFilteredDevices(devices []types.PciDevice, rc *t
 		filteredDevice = rdmaDevices
 	}
 
+	// filter for vDPA-capable devices
+	if nf.VdpaType != "" {
+		vdpaDevices := make([]types.PciDevice, 0)
+		for _, dev := range filteredDevice {
+			vdpaDev := dev.(types.PciNetDevice).GetVdpaDevice()
+			if vdpaDev == nil {
+				continue
+			}
+			if vType := vdpaDev.GetType(); vType != types.VdpaInvalidType && vType == nf.VdpaType {
+				vdpaDevices = append(vdpaDevices, dev)
+			}
+		}
+		filteredDevice = vdpaDevices
+	}
+
 	// convert to []PciNetDevice to []PciDevice
 	newDeviceList := make([]types.PciDevice, len(filteredDevice))
 	for i, d := range filteredDevice {

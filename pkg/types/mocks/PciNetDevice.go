@@ -259,6 +259,22 @@ func (_m *PciNetDevice) GetVFID() int {
 	return r0
 }
 
+// GetVdpaDevice provides a mock function with given fields:
+func (_m *PciNetDevice) GetVdpaDevice() types.VdpaDevice {
+	ret := _m.Called()
+
+	var r0 types.VdpaDevice
+	if rf, ok := ret.Get(0).(func() types.VdpaDevice); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(types.VdpaDevice)
+		}
+	}
+
+	return r0
+}
+
 // GetVendor provides a mock function with given fields:
 func (_m *PciNetDevice) GetVendor() string {
 	ret := _m.Called()

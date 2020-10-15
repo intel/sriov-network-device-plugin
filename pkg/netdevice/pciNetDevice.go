@@ -31,12 +31,14 @@ type pciNetDevice struct {
 	linkSpeed string
 	rdmaSpec  types.RdmaSpec
 	linkType  string
+	vdpaDev   types.VdpaDevice
 }
 
 // NewPciNetDevice returns an instance of PciNetDevice interface
 func NewPciNetDevice(dev *ghw.PCIDevice, rFactory types.ResourceFactory, rc *types.ResourceConfig) (types.PciNetDevice, error) {
 	var ifName string
 	infoProviders := make([]types.DeviceInfoProvider, 0)
+	var vdpaDev types.VdpaDevice
 
 	driverName, err := utils.GetDriverName(dev.Address)
 	if err != nil {
@@ -48,7 +50,14 @@ func NewPciNetDevice(dev *ghw.PCIDevice, rFactory types.ResourceFactory, rc *typ
 	nf, ok := rc.SelectorObj.(*types.NetDeviceSelectors)
 	if ok {
 		// Add InfoProviders based on Selector data
-		if nf.IsRdma {
+		if nf.VdpaType != "" {
+			vdpaDev = rFactory.GetVdpaDevice(dev.Address)
+			if vdpaDev == nil {
+				glog.Warningf("No vDPA device found for device %s", dev.Address)
+			} else {
+				infoProviders = append(infoProviders, NewVdpaInfoProvider(nf.VdpaType, vdpaDev))
+			}
+		} else if nf.IsRdma {
 			if rdmaSpec.IsRdma() {
 				infoProviders = append(infoProviders, NewRdmaInfoProvider(rdmaSpec))
 			} else {
@@ -97,6 +106,7 @@ func NewPciNetDevice(dev *ghw.PCIDevice, rFactory types.ResourceFactory, rc *typ
 		linkSpeed: "", // TO-DO: Get this using utils pkg
 		rdmaSpec:  rdmaSpec,
 		linkType:  linkType,
+		vdpaDev:   vdpaDev,
 	}, nil
 }
 
@@ -128,4 +138,8 @@ func (nd *pciNetDevice) GetDDPProfiles() string {
 		return ""
 	}
 	return ddpProfile
+}
+
+func (nd *pciNetDevice) GetVdpaDevice() types.VdpaDevice {
+	return nd.vdpaDev
 }
