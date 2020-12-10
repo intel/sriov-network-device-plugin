@@ -166,7 +166,7 @@ For example manifest objects refer to [SR-IOV demo](https://github.com/nokia/dan
 
 ### Config parameters
 
-This plugin creates device plugin endpoints based on the configurations given in  the config map associated with the SR-IOV device plugin. In json format this file appears as shown below:
+This plugin creates device plugin endpoints based on the configurations given in the config map associated with the SR-IOV device plugin. In json format this file appears as shown below:
 
 ```json
 {
@@ -204,6 +204,15 @@ This plugin creates device plugin endpoints based on the configurations given in
             "selectors": {
                 "linkTypes": ["infiniband"],
                 "isRdma": true
+            }
+        },
+        {
+            "resourceName": "ct6dx_vdpa_vhost",
+            "selectors": {
+                "vendors": ["15b3"],
+                "devices": ["101e"],
+                "drivers": ["mlx5_core"],
+                "vdpaType": "vhost"
             }
         },
         {
@@ -258,6 +267,7 @@ This selector is applicable when "deviceType" is "netDevice"(note: this is defau
 | "ddpProfiles" | N        | A map of device selectors                                      | `string` list Default: `null`                     | "ddpProfiles": ["GTPv1-C/U IPv4/IPv6 payload"]                                                   |
 | "isRdma"      | N        | Mount RDMA resources                                           | `bool`  values `true` or `false` Default: `false` | "isRdma": `true`                                                                                 |
 | "needVhostNet"| N        | Share /dev/vhost-net                                           | `bool`  values `true` or `false` Default: `false` | "needVhostNet": `true`                                                                           |
+| "vdpaType"    | N        | The type of vDPA device (virtio, vhost or `nil`)               | `string` values `vhost` or `virtio` Default: `null` | "vdpaType": "vhost"                                                                           |
 
 
 [//]: # (The tables above generated using: https://ozh.github.io/ascii-tables/)
