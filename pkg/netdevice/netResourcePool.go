@@ -72,17 +72,35 @@ func (rp *netResourcePool) GetDeviceSpecs(deviceIDs []string) []*pluginapi.Devic
 // StoreDeviceInfoFile stores the Device Info files according to the
 //  k8snetworkplumbingwg/device-info-spec
 func (rp *netResourcePool) StoreDeviceInfoFile(resourceNamePrefix string) error {
+	var devInfo nettypes.DeviceInfo
 	for id, dev := range rp.GetDevicePool() {
 		netDev, ok := dev.(types.PciNetDevice)
 		if !ok {
 			return fmt.Errorf("StoreDeviceInfoFile: Only pciNetDevices are supported")
 		}
-		devInfo := nettypes.DeviceInfo{
-			Type:    nettypes.DeviceInfoTypePCI,
-			Version: nettypes.DeviceInfoVersion,
-			Pci: &nettypes.PciDevice{
-				PciAddress: netDev.GetPciAddr(),
-			},
+
+		vdpaDev := netDev.GetVdpaDevice()
+		if vdpaDev != nil {
+			vdpaType := vdpaDev.GetType()
+			devInfo = nettypes.DeviceInfo{
+				Type:    nettypes.DeviceInfoTypeVDPA,
+				Version: nettypes.DeviceInfoVersion,
+				Vdpa: &nettypes.VdpaDevice{
+					ParentDevice: vdpaDev.GetParent(),
+					Driver:       string(vdpaType),
+					Path:         vdpaDev.GetPath(),
+					PciAddress:   netDev.GetPciAddr(),
+				},
+			}
+
+		} else {
+			devInfo = nettypes.DeviceInfo{
+				Type:    nettypes.DeviceInfoTypePCI,
+				Version: nettypes.DeviceInfoVersion,
+				Pci: &nettypes.PciDevice{
+					PciAddress: netDev.GetPciAddr(),
+				},
+			}
 		}
 		resource := fmt.Sprintf("%s/%s", resourceNamePrefix, rp.GetConfig().ResourceName)
 		if err := rp.nadutils.SaveDeviceInfoFile(resource, id, &devInfo); err != nil {
