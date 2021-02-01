@@ -94,6 +94,8 @@ github.com/onsi/gomega/types
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
+# github.com/redhat-virtio-net/govdpa v0.1.2
+github.com/redhat-virtio-net/govdpa/pkg/kvdpa
 # github.com/stretchr/objx v0.2.0
 github.com/stretchr/objx
 # github.com/stretchr/testify v1.5.1
