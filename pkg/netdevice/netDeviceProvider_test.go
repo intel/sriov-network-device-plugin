@@ -131,11 +131,19 @@ var _ = Describe("NetDeviceProvider", func() {
 				lt := []string{"ether", "infiniband", "ether", "ether", "fake"}
 				dd := []string{"E710 PPPoE and PPPoL2TPv2", "fake", "fake", "gtp", "profile"}
 				rd := []bool{false, true, false, false, true}
+				vd := []string{"vhost", "vhost", "", "", "virtio"}
 
 				rdmaYes := &mocks.RdmaSpec{}
 				rdmaYes.On("IsRdma").Return(true)
 				rdmaNo := &mocks.RdmaSpec{}
 				rdmaNo.On("IsRdma").Return(false)
+
+				vdpaVhost := &mocks.VdpaDevice{}
+				vdpaVhost.On("GetDriver").Return("vhost_vdpa").
+					On("GetType").Return(types.VdpaVhostType)
+				vdpaVirtio := &mocks.VdpaDevice{}
+				vdpaVirtio.On("GetDriver").Return("virtio_vdpa").
+					On("GetType").Return(types.VdpaVirtioType)
 
 				for i, _ := range mocked {
 					mocked[i].
@@ -152,6 +160,14 @@ var _ = Describe("NetDeviceProvider", func() {
 						mocked[i].On("GetRdmaSpec").Return(rdmaYes)
 					} else {
 						mocked[i].On("GetRdmaSpec").Return(rdmaNo)
+					}
+					switch vd[i] {
+					case "vhost":
+						mocked[i].On("GetVdpaDevice").Return(vdpaVhost)
+					case "virtio":
+						mocked[i].On("GetVdpaDevice").Return(vdpaVirtio)
+					default:
+						mocked[i].On("GetVdpaDevice").Return(nil)
 					}
 
 					all[i] = &mocked[i]
@@ -172,6 +188,8 @@ var _ = Describe("NetDeviceProvider", func() {
 					{"linkTypes multi", &types.NetDeviceSelectors{LinkTypes: []string{"infiniband", "fake"}}, []types.PciDevice{all[1], all[4]}},
 					{"ddpProfiles", &types.NetDeviceSelectors{DDPProfiles: []string{"E710 PPPoE and PPPoL2TPv2"}}, []types.PciDevice{all[0]}},
 					{"rdma", &types.NetDeviceSelectors{IsRdma: true}, []types.PciDevice{all[1], all[4]}},
+					{"vdpa-vhost", &types.NetDeviceSelectors{VdpaType: "vhost"}, []types.PciDevice{all[0], all[1]}},
+					{"vdpa-virtio", &types.NetDeviceSelectors{VdpaType: "virtio"}, []types.PciDevice{all[4]}},
 				}
 
 				for _, tc := range testCases {

@@ -167,3 +167,19 @@ func (_m *ResourceFactory) GetSelector(_a0 string, _a1 []string) (types.DeviceSe
 
 	return r0, r1
 }
+
+// GetVdpaDevice provides a mock function with given fields: _a0
+func (_m *ResourceFactory) GetVdpaDevice(_a0 string) types.VdpaDevice {
+	ret := _m.Called(_a0)
+
+	var r0 types.VdpaDevice
+	if rf, ok := ret.Get(0).(func(string) types.VdpaDevice); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(types.VdpaDevice)
+		}
+	}
+
+	return r0
+}

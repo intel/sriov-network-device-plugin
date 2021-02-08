@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sriovdp-config
+  namespace: kube-system
+data:
+  config.json: |
+    {
+        "resourceList": [{
+            {
+                "resourceName": "vdpa_mlx_virtio",
+                "selectors": {
+                    "vendors": ["15b3"],
+                    "devices": ["101e"],
+                    "drivers": ["mlx5_core"],
+                    "vdpaType": "virtio"
+                }
+            },
+            {
+                "resourceName": "vdpa_mlx_vhost",
+                "selectors": {
+                    "vendors": ["15b3"],
+                    "devices": ["101e"],
+                    "drivers": ["mlx5_core"],
+                    "vdpaType": "vhost"
+                }
+            }
+        ]
+    }
+

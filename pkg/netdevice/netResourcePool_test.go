@@ -110,9 +110,11 @@ var _ = Describe("NetResourcePool", func() {
 
 			devs := map[string]*v1beta1.Device{}
 			fake1 := &mocks.PciNetDevice{}
-			fake1.On("GetPciAddr").Return("0000:01:00.1")
+			fake1.On("GetPciAddr").Return("0000:01:00.1").
+				On("GetVdpaDevice").Return(nil)
 			fake2 := &mocks.PciNetDevice{}
-			fake2.On("GetPciAddr").Return("0000:01:00.2")
+			fake2.On("GetPciAddr").Return("0000:01:00.2").
+				On("GetVdpaDevice").Return(nil)
 			pcis := map[string]types.PciDevice{"fake1": fake1, "fake2": fake2}
 
 			It("should call nadutils to create a well formatted DeviceInfo object", func() {
@@ -144,6 +146,76 @@ var _ = Describe("NetResourcePool", func() {
 				err := rp.CleanDeviceInfoFile("fakeOrg.io")
 				nadutils.AssertExpectations(t)
 				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+		Context("for vdpa devices devices", func() {
+			rc := &types.ResourceConfig{
+				ResourceName:   "fakeResource",
+				ResourcePrefix: "fakeOrg.io",
+				SelectorObj: &types.NetDeviceSelectors{
+					VdpaType: "vhost",
+				},
+			}
+
+			devs := map[string]*v1beta1.Device{}
+			fakeVdpa1 := &mocks.VdpaDevice{}
+			fakeVdpa1.On("GetDriver").Return("vhost_vdpa").
+				On("GetParent").Return("vdpa1").
+				On("GetPath").Return("/dev/vhost-vdpa5").
+				On("GetType").Return(types.VdpaVhostType)
+
+			fakeVdpa2 := &mocks.VdpaDevice{}
+			fakeVdpa2.On("GetDriver").Return("vhost_vdpa").
+				On("GetParent").Return("vdpa2").
+				On("GetPath").Return("/dev/vhost-vdpa6").
+				On("GetType").Return(types.VdpaVhostType)
+
+			fake1 := &mocks.PciNetDevice{}
+			fake2 := &mocks.PciNetDevice{}
+			fake1.On("GetPciAddr").Return("0000:01:00.1").
+				On("GetVdpaDevice").Return(fakeVdpa1)
+			fake2.On("GetPciAddr").Return("0000:01:00.2").
+				On("GetVdpaDevice").Return(fakeVdpa2)
+
+			pcis := map[string]types.PciDevice{"fake1": fake1, "fake2": fake2}
+
+			It("should call nadutils to create a well formatted DeviceInfo object", func() {
+				nadutils := &mocks.NadUtils{}
+				nadutils.On("SaveDeviceInfoFile", "fakeOrg.io/fakeResource", "fake1", Anything).
+					Return(func(rName, id string, devInfo *nettypes.DeviceInfo) error {
+						if devInfo.Type != nettypes.DeviceInfoTypeVDPA ||
+							devInfo.Vdpa == nil ||
+							devInfo.Vdpa.ParentDevice != "vdpa1" ||
+							devInfo.Vdpa.Driver != "vhost" ||
+							devInfo.Vdpa.Path != "/dev/vhost-vdpa5" {
+							return fmt.Errorf("wrong device info %+v", devInfo)
+						}
+						return nil
+					})
+				nadutils.On("SaveDeviceInfoFile", "fakeOrg.io/fakeResource", "fake2", Anything).
+					Return(func(rName, id string, devInfo *nettypes.DeviceInfo) error {
+						if devInfo.Type != nettypes.DeviceInfoTypeVDPA ||
+							devInfo.Vdpa == nil ||
+							devInfo.Vdpa.ParentDevice != "vdpa2" ||
+							devInfo.Vdpa.Driver != "vhost" ||
+							devInfo.Vdpa.Path != "/dev/vhost-vdpa6" {
+							return fmt.Errorf("wrong device info %+v", devInfo)
+						}
+						return nil
+					})
+				rp := netdevice.NewNetResourcePool(nadutils, rc, devs, pcis)
+				err := rp.StoreDeviceInfoFile("fakeOrg.io")
+				Expect(err).ToNot(HaveOccurred())
+				nadutils.AssertExpectations(t)
+			})
+			It("should call nadutils to clean the DeviceInfo objects", func() {
+				nadutils := &mocks.NadUtils{}
+				nadutils.On("CleanDeviceInfoFile", "fakeOrg.io/fakeResource", "fake1").Return(nil)
+				nadutils.On("CleanDeviceInfoFile", "fakeOrg.io/fakeResource", "fake2").Return(nil)
+				rp := netdevice.NewNetResourcePool(nadutils, rc, devs, pcis)
+				err := rp.CleanDeviceInfoFile("fakeOrg.io")
+				Expect(err).ToNot(HaveOccurred())
+				nadutils.AssertExpectations(t)
 			})
 		})
 	})
