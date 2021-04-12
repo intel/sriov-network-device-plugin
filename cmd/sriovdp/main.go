@@ -21,6 +21,8 @@ import (
 	"syscall"
 
 	"github.com/golang/glog"
+	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/config"
+	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/features"
 )
 
 const (
@@ -32,6 +34,8 @@ func flagInit(cp *cliParams) {
 	flag.StringVar(&cp.configFile, "config-file", defaultConfig,
 		"JSON device pool config file location")
 	flag.StringVar(&cp.resourcePrefix, "resource-prefix", "intel.com",
+		"resource name prefix used for K8s extended resource")
+	flag.StringVar(&cp.featureGates, "feature-gates", "",
 		"resource name prefix used for K8s extended resource")
 }
 
@@ -57,6 +61,22 @@ func main() {
 		glog.Fatalf("Exiting.. one or more invalid configuration(s) given")
 		return
 	}
+
+	if err := config.Config.ReadConfig(cp.configFile); err != nil {
+		glog.Error(err)
+		return
+	}
+
+	if err := features.FeatureGate.SetFromMap(config.Config.FeatureGates); err != nil {
+		glog.Error(err)
+		return
+	}
+
+	if err := features.FeatureGate.SetFromString(cp.featureGates); err != nil {
+		glog.Error(err)
+		return
+	}
+
 	glog.Infof("Discovering host devices")
 	if err := rm.discoverHostDevices(); err != nil {
 		glog.Errorf("error discovering host devices%v", err)
