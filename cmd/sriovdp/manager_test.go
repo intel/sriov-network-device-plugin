@@ -114,7 +114,11 @@ var _ = Describe("Resource manager", func() {
 									"drivers": ["vfio-pci"]
 								}
 							}
-						]
+						],
+						"featureGates": {
+							"testFeatureOne": true,
+							"testFeatureTwo": false
+						}
 					}`), 0644)
 				if testErr != nil {
 					panic(testErr)

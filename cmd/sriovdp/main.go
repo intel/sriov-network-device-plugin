@@ -16,9 +16,9 @@ package main
 
 import (
 	"flag"
-	"os"
-	"os/signal"
-	"syscall"
+	// "os"
+	// "os/signal"
+	// "syscall"
 
 	"github.com/golang/glog"
 	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/config"
@@ -36,7 +36,7 @@ func flagInit(cp *cliParams) {
 	flag.StringVar(&cp.resourcePrefix, "resource-prefix", "intel.com",
 		"resource name prefix used for K8s extended resource")
 	flag.StringVar(&cp.featureGates, "feature-gates", "",
-		"resource name prefix used for K8s extended resource")
+		"enables or disables selected features")
 }
 
 func main() {
@@ -86,28 +86,28 @@ func main() {
 		return
 	}
 
-	glog.Infof("Initializing resource servers")
-	if err := rm.initServers(); err != nil {
-		glog.Errorf("error initializing resource servers %v", err)
-		return
-	}
+	// glog.Infof("Initializing resource servers")
+	// if err := rm.initServers(); err != nil {
+	// 	glog.Errorf("error initializing resource servers %v", err)
+	// 	return
+	// }
 
-	glog.Infof("Starting all servers...")
-	if err := rm.startAllServers(); err != nil {
-		glog.Errorf("error starting resource servers %v\n", err)
-		return
-	}
-	glog.Infof("All servers started.")
-	glog.Infof("Listening for term signals")
-	// respond to syscalls for termination
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	// glog.Infof("Starting all servers...")
+	// if err := rm.startAllServers(); err != nil {
+	// 	glog.Errorf("error starting resource servers %v\n", err)
+	// 	return
+	// }
+	// glog.Infof("All servers started.")
+	// glog.Infof("Listening for term signals")
+	// // respond to syscalls for termination
+	// sigCh := make(chan os.Signal, 1)
+	// signal.Notify(sigCh, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-	// Catch termination signals
-	select {
-	case sig := <-sigCh:
-		glog.Infof("Received signal \"%v\", shutting down.", sig)
-		rm.stopAllServers()
-		return
-	}
+	// // Catch termination signals
+	// select {
+	// case sig := <-sigCh:
+	// 	glog.Infof("Received signal \"%v\", shutting down.", sig)
+	// 	rm.stopAllServers()
+	// 	return
+	// }
 }
