@@ -54,7 +54,7 @@ spec:
       serviceAccountName: sriov-device-plugin
       containers:
       - name: kube-sriovdp
-        image: docker.io/nfvpe/sriov-device-plugin
+        image: ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin:stable-amd64
         imagePullPolicy: IfNotPresent
         args:
         - --log-dir=sriovdp

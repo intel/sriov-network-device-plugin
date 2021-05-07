@@ -30,7 +30,7 @@ COVERAGE_XML = $(COVERAGE_DIR)/coverage.xml
 COVERAGE_HTML = $(COVERAGE_DIR)/index.html
 # Docker image
 DOCKERFILE?=$(CURDIR)/images/Dockerfile
-TAG=docker.io/nfvpe/sriov-device-plugin
+TAG?=ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin
 # Docker arguments - To pass proxy for Docker invoke it as 'make image HTTP_POXY=http://192.168.0.1:8080'
 DOCKERARGS=
 ifdef HTTP_PROXY

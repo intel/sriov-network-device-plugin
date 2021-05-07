@@ -9,8 +9,9 @@
 - [Features](#features)
   - [Supported SR-IOV NICs](#supported-sr-iov-nics)
 - [Quick Start](#quick-start)
-  - [Build SR-IOV CNI](#build-sr-iov-cni)
-  - [Build and run SR-IOV network device plugin](#build-and-run-sr-iov-network-device-plugin)
+  - [Install SR-IOV CNI](#install-sr-iov-cni)
+  - [Get SR-IOV Network Device Plugin container image](#get-sr-iov-network-device-plugin-container-image)
+  - [Install SR-IOV Network Device Plugin](#install-sr-iov-network-device-plugin)
   - [Install one compatible CNI meta plugin](#install-one-compatible-cni-meta-plugin)
       - [Option 1 - Multus](#option-1---multus)
         - [Install Multus](#install-multus)
@@ -88,45 +89,40 @@ The following  NICs were tested with this implementation. However, other SR-IOV 
 
 Before starting the SR-IOV device plugin you will need to create SR-IOV Virtual Functions on your system. [The VF Setup doc will guide you through that process.](docs/vf-setup.md)
 
-### Build SR-IOV CNI
+### Install SR-IOV CNI
 
-1. Compile SR-IOV-CNI (supported from release 2.0+):
+See the [SR-IOV CNI](https://github.com/k8snetworkplumbingwg/sriov-cni) repository for build and installation instructions. Supported from SR-IOV CNI release 2.0+.
+
+### Get SR-IOV Network Device Plugin container image
+#### GitHub
 ```
-$ git clone https://github.com/k8snetworkplumbingwg/sriov-cni.git
-$ cd sriov-cni
-$ make
-$ cp build/sriov /opt/cni/bin
+$ docker pull ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin:stable-amd64
+```
+#### Docker
+```
+$ docker pull docker.io/nfvpe/sriov-device-plugin:${LATEST_TAGGED_RELEASE}
 ```
 
-### Build and run SR-IOV network device plugin
-
-You can either build the docker image locally or pull it from [docker hub](https://hub.docker.com/r/nfvpe/sriov-device-plugin/).
-
-If you want to build the docker image locally then follow the following steps:
-
- 1. Clone the sriov-network-device-plugin
- ```
-$ git clone https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin.git
-$ cd sriov-network-device-plugin
- ```
- 2. Build docker image binary using `make`
- ```
+#### Build image locally
+```
 $ make image
 ```
-> On a successful build, a docker image with tag `nfvpe/sriov-device-plugin:latest` will be created. You will need to build this image on each node. Alternatively, you could use a local docker registry to host this image.
+> On a successful build, a docker image with tag `ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin:latest` will be created. You will need to build this image on each node. Alternatively, you could use a local docker registry to host this image.
 
- 3. Create a ConfigMap that defines SR-IOV resrouce pool configuration
- 
- > Make sure to update the 'config.json' entry in the configMap data to reflect your resource configuration for the device plugin. See [Configurations](#configurations) section for supported configuration parameters.
+### Install SR-IOV Network Device Plugin
+#### Deploy config map
+Create a ConfigMap that defines SR-IOV resource pool configuration
 
- ```
+> Make sure to update the 'config.json' entry in the configMap data to reflect your resource configuration for the device plugin. See [Configurations](#configurations) section for supported configuration parameters.
+
+```
 $ kubectl create -f deployments/configMap.yaml
 ```
- 4. Deploy SR-IOV network device plugin Daemonset
+#### Deploy daemonset
 ```
 $ kubectl create -f deployments/k8s-v1.16/sriovdp-daemonset.yaml
 ```
-> For K8s version v1.15 or older use `deployments/k8s-v1.10-v1.15/sriovdp-daemonset.yaml` instead.
+> For K8s version v1.15 or earlier use `deployments/k8s-v1.10-v1.15/sriovdp-daemonset.yaml` instead.
 
 
 ### Install one compatible CNI meta plugin
@@ -543,6 +539,7 @@ For more information refer to [this](./docs/dpdk/README-virt.md).
 
 The supported architectures:
 * AMD64
+* ARM64
 * PPC64LE
 
 Buiding image for AMD64:
@@ -552,11 +549,9 @@ $ DOCKERFILE=Dockerfile make image
 
 Buiding image for PPC64LE:
 ```
-$ DOCKERFILE=images/Dockerfile.ppc64le TAG=nfvpe/sriov-device-plugin:ppc64le make image        
+$ DOCKERFILE=images/Dockerfile.ppc64le TAG=ghcr.io/k8snetworkplumbingwg/sriov-device-plugin:latest-ppc64le make image
 ```
 
 ## Issues and Contributing
 
 We welcome your feedback and contributions to this project. Please see the [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
-
-Copyright 2018 © Intel Corporation.
