@@ -35,7 +35,7 @@ spec:
       serviceAccountName: sriov-device-plugin
       containers:
       - name: kube-sriovdp
-        image: docker.io/nfvpe/sriov-device-plugin:v3.3
+        image: ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin:v3.3.2
         imagePullPolicy: IfNotPresent
         args:
         - --log-dir=sriovdp
@@ -107,7 +107,7 @@ spec:
       serviceAccountName: sriov-device-plugin
       containers:
       - name: kube-sriovdp
-        image: docker.io/nfvpe/sriov-device-plugin:ppc64le
+        image: ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin:ppc64le
         imagePullPolicy: IfNotPresent
         args:
         - --log-dir=sriovdp
