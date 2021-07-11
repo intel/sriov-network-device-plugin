@@ -31,6 +31,10 @@ COVERAGE_HTML = $(COVERAGE_DIR)/index.html
 # Docker image
 DOCKERFILE?=$(CURDIR)/images/Dockerfile
 TAG=docker.io/nfvpe/sriov-device-plugin
+VERSION=latest
+ifdef GITHUB_SHA
+	VERSION=$(GITHUB_SHA)
+endif
 # Docker arguments - To pass proxy for Docker invoke it as 'make image HTTP_POXY=http://192.168.0.1:8080'
 DOCKERARGS=
 ifdef HTTP_PROXY
@@ -137,6 +141,10 @@ deps-update: ; $(info  Updating dependencies...) @ ## Update dependencies
 .PHONY: image
 image: | $(BASE) ; $(info Building Docker image...) @ ## Build SR-IOV Network device plugin docker image
 	@docker build -t $(TAG) -f $(DOCKERFILE)  $(CURDIR) $(DOCKERARGS)
+
+.PHONY: test-image
+test-image: | $(BASE) ; $(info Building Docker image...) @ ## Build SR-IOV Network device plugin docker image
+	@docker build -t $(TAG):$(VERSION) -f $(DOCKERFILE)  $(CURDIR) $(DOCKERARGS)
 
 .PHONY: clean
 clean: ; $(info  Cleaning...) @ ## Cleanup everything

@@ -1,0 +1,16 @@
+name: sriov-dp-e2e-test
+on: [pull_request]
+jobs:
+  sriov-dp-e2e-test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - run: cd scripts && ./e2e_setup_cluster.sh NIC_NAME
+      - run: cd cmd/sriovdp && go get -t .
+      - run: make test-image
+      - run: kind load docker-image docker.io/nfvpe/sriov-device-plugin:$GITHUB_SHA
+      - run: cd test/e2e/ && go test
+      - run: kind delete cluster
+      - run: docker image rm docker.io/nfvpe/sriov-device-plugin:$GITHUB_SHA
+
