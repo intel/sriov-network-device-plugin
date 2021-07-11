@@ -1,0 +1,92 @@
+name: build-test-lint
+on: [push, pull_request]
+jobs:
+  build:
+    name: build
+    strategy:
+      matrix:
+        go-version: [1.13.x, 1.14.x, 1.15.x, 1.16.x]
+        goarch: [amd64]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Build
+        env:
+          GOARCH: ${{ matrix.goarch }}
+          GOOS: ${{ matrix.goos }}
+        run: make build
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    name: test
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16.x
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Install hwdata
+        run: sudo apt-get install hwdata -y
+
+      - name: Go test
+        run: make test
+
+  golangci:
+    name: Golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: v1.37
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run ShellCheck
+      uses: ludeeus/action-shellcheck@master
+
+  hadolint:
+    runs-on: ubuntu-latest
+    name: Hadolint
+    steps:
+    - uses: actions/checkout@v2
+    - uses: brpaz/hadolint-action@v1.2.1
+      name: Run Hadolint
+      with:
+       dockerfile: ./images/Dockerfile
+    - uses: brpaz/hadolint-action@v1.2.1
+      with:
+        dockerfile: Dockerfile.rhel7
+
+  go-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+
+    # if this fails, run go mod tidy
+    - name: Check if module files are consistent with code
+      run: go mod tidy && git diff --exit-code
+
+    # if this fails, run go mod vendor
+    - name: Check if vendor directory is consistent with go modules
+      run: go mod vendor && git diff --exit-code
