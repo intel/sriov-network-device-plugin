@@ -111,6 +111,9 @@ func hasDefaultRoute(pciAddr string) (bool, error) {
 			}
 
 			routes, err := netlink.RouteList(link, netlink.FAMILY_V4) // IPv6 routes: all interface has at least one link local route entry
+			if err != nil {
+				glog.Infof("error getting route list for net device %s", ifName)
+			}
 			for _, r := range routes {
 				if r.Dst == nil {
 					glog.Infof("excluding interface %s:  default route found: %+v", ifName, r)

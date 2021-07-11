@@ -48,6 +48,20 @@ var _ = Describe("Factory", func() {
 			})
 		})
 	})
+	DescribeTable("getting allocator",
+		func(policy string, expected reflect.Type) {
+			f := factory.NewResourceFactory("fake", "fake", true)
+			a := f.GetAllocator(policy)
+			if expected != nil {
+				Expect(reflect.TypeOf(a)).To(Equal(expected))
+			} else {
+				Expect(a).To(BeNil())
+			}
+		},
+		Entry("packed", "packed", reflect.TypeOf(resources.NewPackedAllocator())),
+		Entry("empty", "", nil),
+		Entry("any other value", "random policy", nil),
+	)
 	DescribeTable("getting info provider",
 		func(name string, expected reflect.Type) {
 			f := factory.NewResourceFactory("fake", "fake", true)
@@ -284,7 +298,8 @@ var _ = Describe("Factory", func() {
 			f := factory.NewResourceFactory("fake", "fake", true)
 			rp := mocks.ResourcePool{}
 			rp.On("GetResourcePrefix").Return("overriden").
-				On("GetResourceName").Return("fake")
+				On("GetResourceName").Return("fake").
+				On("GetAllocatePolicy").Return("")
 			rs, e := f.GetResourceServer(&rp)
 			It("should not fail", func() {
 				Expect(e).NotTo(HaveOccurred())

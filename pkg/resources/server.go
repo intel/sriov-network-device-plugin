@@ -41,10 +41,11 @@ type resourceServer struct {
 	updateSignal       chan bool
 	stopWatcher        chan bool
 	checkIntervals     int // health check intervals in seconds
+	allocator          types.Allocator
 }
 
 // NewResourceServer returns an instance of ResourceServer
-func NewResourceServer(prefix, suffix string, pluginWatch bool, rp types.ResourcePool) types.ResourceServer {
+func NewResourceServer(prefix, suffix string, pluginWatch bool, rp types.ResourcePool, allocator types.Allocator) types.ResourceServer {
 	sockName := fmt.Sprintf("%s_%s.%s", prefix, rp.GetResourceName(), suffix)
 	sockPath := filepath.Join(types.SockDir, sockName)
 	if !pluginWatch {
@@ -61,6 +62,7 @@ func NewResourceServer(prefix, suffix string, pluginWatch bool, rp types.Resourc
 		updateSignal:       make(chan bool),
 		stopWatcher:        make(chan bool),
 		checkIntervals:     20, // updates every 20 seconds
+		allocator:          allocator,
 	}
 }
 
@@ -109,6 +111,18 @@ func (rs *resourceServer) NotifyRegistrationStatus(ctx context.Context, regstat 
 		rs.grpcServer.Stop()
 	}
 	return &registerapi.RegistrationStatusResponse{}, nil
+}
+
+func (rs *resourceServer) GetPreferredAllocation(ctx context.Context, rqt *pluginapi.PreferredAllocationRequest) (*pluginapi.PreferredAllocationResponse, error) {
+	glog.Infof("GetPreferredAllocation called with %+v", rqt)
+	resp := new(pluginapi.PreferredAllocationResponse)
+	for _, container := range rqt.ContainerRequests {
+		containerResp := new(pluginapi.ContainerPreferredAllocationResponse)
+		containerResp.DeviceIDs = rs.allocator.Allocate(container, rs.resourcePool)
+		resp.ContainerResponses = append(resp.ContainerResponses, containerResp)
+	}
+	glog.Infof("PreferredAllocationResponse send: %+v", resp)
+	return resp, nil
 }
 
 func (rs *resourceServer) Allocate(ctx context.Context, rqt *pluginapi.AllocateRequest) (*pluginapi.AllocateResponse, error) {
@@ -176,7 +190,8 @@ func (rs *resourceServer) PreStartContainer(ctx context.Context, psRqt *pluginap
 
 func (rs *resourceServer) GetDevicePluginOptions(ctx context.Context, empty *pluginapi.Empty) (*pluginapi.DevicePluginOptions, error) {
 	return &pluginapi.DevicePluginOptions{
-		PreStartRequired: false,
+		PreStartRequired:                false,
+		GetPreferredAllocationAvailable: (rs.allocator != nil),
 	}, nil
 }
 

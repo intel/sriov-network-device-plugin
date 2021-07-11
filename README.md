@@ -36,6 +36,7 @@ The SR-IOV Network Device Plugin is Kubernetes device plugin for discovering and
 - Supports devices with both Kernel and userspace (UIO and VFIO) drivers
 - Allows resource grouping using "Selector"
 - User configurable resourceName
+- User configurable policy for preferred device allocation
 - Detects Kubelet restarts and auto-re-register
 - Detects Link status (for Linux network devices) and updates associated VFs health accordingly
 - Extensible to support new device types with minimal effort if not already supported
@@ -164,6 +165,7 @@ This plugin creates device plugin endpoints based on the configurations given in
         {
             "resourceName": "intel_sriov_dpdk",
             "resourcePrefix": "intel.com",
+            "allocatePolicy": "packed",
             "selectors": {
                 "vendors": ["8086"],
                 "devices": ["154c", "10ed", "1889"],
@@ -175,6 +177,7 @@ This plugin creates device plugin endpoints based on the configurations given in
         {
             "resourceName": "mlnx_sriov_rdma",
             "resourcePrefix": "mellanox.com",
+            "allocatePolicy": "packed",
             "selectors": {
                 "vendors": ["15b3"],
                 "devices": ["1018"],
@@ -211,6 +214,7 @@ This plugin creates device plugin endpoints based on the configurations given in
 | "resourcePrefix" | N        | Endpoint resource prefix name override. Should not contain special characters                                     | string Default : "intel.com"                          | "yourcompany.com"                                               |
 | "deviceType"     | N        | Device Type for a resource pool.                                                                                  | string value of supported types. Default: "netDevice" | Currently supported values: "accelerator", "netDevice"          |
 | "selectors"      | N        | A map of device selectors. The "deviceType" value determines the "selectors" options.                             | json object as string Default: null                   | Example: "selectors": {"vendors": ["8086"],"devices": ["154c"]} |
+| "allocatePolicy" | N        | Preferred device allocation policy for a resource pool. The "allocatePolicy" value determines which device in a resource pool is allocated first | string value of supported allocate policy. Default: "" | Example: "allocatePolicy": "packed" |
 
 
 
@@ -253,7 +257,7 @@ This selector is applicable when "deviceType" is "accelerator". The "accelerator
 This plugin accepts the following optional run-time command line arguments:
 
 ```bash
-./sriovdp --help
+./sriovdp -h
 
 Usage of ./sriovdp:
   -alsologtostderr

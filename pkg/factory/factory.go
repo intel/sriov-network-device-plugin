@@ -55,9 +55,20 @@ func (rf *resourceFactory) GetResourceServer(rp types.ResourcePool) (types.Resou
 		if prefixOverride := rp.GetResourcePrefix(); prefixOverride != "" {
 			prefix = prefixOverride
 		}
-		return resources.NewResourceServer(prefix, rf.endPointSuffix, rf.pluginWatch, rp), nil
+		policy := rp.GetAllocatePolicy()
+		return resources.NewResourceServer(prefix, rf.endPointSuffix, rf.pluginWatch, rp, rf.GetAllocator(policy)), nil
 	}
 	return nil, fmt.Errorf("factory: unable to get resource pool object")
+}
+
+// GetAllocator returns an instance of Allocator using preferredAllocationPolicy
+func (rf *resourceFactory) GetAllocator(policy string) types.Allocator {
+	switch policy {
+	case "packed":
+		return resources.NewPackedAllocator()
+	default:
+		return nil
+	}
 }
 
 // GetDefaultInfoProvider returns an instance of DeviceInfoProvider using name as string

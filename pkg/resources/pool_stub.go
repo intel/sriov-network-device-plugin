@@ -49,6 +49,11 @@ func (rp *ResourcePoolImpl) InitDevice() error {
 	return nil
 }
 
+// GetAllocatePolicy returns the allocate policy as string
+func (rp *ResourcePoolImpl) GetAllocatePolicy() string {
+	return rp.config.AllocatePolicy
+}
+
 // GetResourceName returns the resource name as string
 func (rp *ResourcePoolImpl) GetResourceName() string {
 	return rp.config.ResourceName
@@ -132,7 +137,7 @@ func (rp *ResourcePoolImpl) DeviceSpecExist(specs []*pluginapi.DeviceSpec, newSp
 	return false
 }
 
-// GetDevicePool returns PciDevice pool as a map
+// GetDevicePool returns PciDevices pool as a map
 func (rp *ResourcePoolImpl) GetDevicePool() map[string]types.PciDevice {
 	return rp.devicePool
 }
