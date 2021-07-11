@@ -34,6 +34,7 @@ const (
 type cliParams struct {
 	configFile     string
 	resourcePrefix string
+	featureGates   string
 }
 
 type resourceManager struct {
