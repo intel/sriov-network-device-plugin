@@ -2,9 +2,11 @@ package resources
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/golang/glog"
 	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/types"
 )
 
@@ -104,7 +106,7 @@ func (s *pfNameSelector) Filter(inDevices []types.PciDevice) []types.PciDevice {
 			// Exclude devices that doesn't have a PF name
 			continue
 		}
-		selector := getItem(s.pfNames, pfName)
+		selector := getItem(s.pfNames, pfName, "pfname")
 		if selector != "" {
 			if isSelected(dev, selector) {
 				filteredList = append(filteredList, dev)
@@ -132,7 +134,7 @@ func (s *rootDeviceSelector) Filter(inDevices []types.PciDevice) []types.PciDevi
 			// Exclude devices that doesn't have a root PCI device
 			continue
 		}
-		selector := getItem(s.rootDevices, rootDevice)
+		selector := getItem(s.rootDevices, rootDevice, "rootDevice")
 		if selector != "" {
 			if isSelected(dev, selector) {
 				filteredList = append(filteredList, dev)
@@ -171,10 +173,19 @@ func contains(hay []string, needle string) bool {
 	return false
 }
 
-func getItem(hay []string, needle string) string {
+func getItem(hay []string, needle string, what string) string {
 	for _, item := range hay {
+		// May be an exact match or a regex, try both.
 		if strings.EqualFold(strings.Split(item, "#")[0], needle) {
 			return item
+		}
+		re, err := regexp.Compile(strings.Split(item, "#")[0])
+		if err != nil {
+			glog.Infof("getItem(): error compiling %s, may however not be a regex: %v", what, err)
+		} else {
+			if re.Match([]byte(needle)) {
+				return item
+			}
 		}
 	}
 	return ""

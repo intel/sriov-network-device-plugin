@@ -130,7 +130,7 @@ var _ = Describe("DeviceSelectors", func() {
 		})*/
 		Context("filtering", func() {
 			It("should return devices matching interface PF name", func() {
-				netDevs := []string{"ens0", "ens2f0#1", "ens2f1#0,3-5,7"}
+				netDevs := []string{"ens0", "ens2f0#1", "ens2f1#0,3-5,7", "enp.*#1-2"}
 				sel := resources.NewPfNameSelector(netDevs)
 
 				dev0 := mocks.PciNetDevice{}
@@ -164,11 +164,17 @@ var _ = Describe("DeviceSelectors", func() {
 				dev10 := mocks.PciNetDevice{}
 				dev10.On("GetPFName").Return("ens2f1")
 				dev10.On("GetVFID").Return(7)
+				dev11 := mocks.PciNetDevice{}
+				dev11.On("GetPFName").Return("enp5s0f0")
+				dev11.On("GetVFID").Return(2)
+				dev12 := mocks.PciNetDevice{}
+				dev12.On("GetPFName").Return("enp5s0f0")
+				dev12.On("GetVFID").Return(3)
 
 				in := []types.PciDevice{&dev0, &dev1, &dev2,
 					&dev3, &dev4, &dev5,
 					&dev6, &dev7, &dev8,
-					&dev9, &dev10}
+					&dev9, &dev10, &dev11, &dev12}
 				filtered := sel.Filter(in)
 
 				Expect(filtered).To(ContainElement(&dev0))
@@ -182,6 +188,8 @@ var _ = Describe("DeviceSelectors", func() {
 				Expect(filtered).To(ContainElement(&dev8))
 				Expect(filtered).NotTo(ContainElement(&dev9))
 				Expect(filtered).To(ContainElement(&dev10))
+				Expect(filtered).To(ContainElement(&dev11))
+				Expect(filtered).NotTo(ContainElement(&dev12))
 			})
 		})
 	})

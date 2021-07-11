@@ -307,8 +307,8 @@ Or
 
 Where:
 
-    `<PFName>`     - is the PF interface name
-    `<RootDevice>` - is the PF PCI address
+    `<PFName>`     - is the PF interface name (may be a regex compatible with https://github.com/google/re2/wiki/Syntax)
+    `<RootDevice>` - is the PF PCI address (may be a regex compatible with https://github.com/google/re2/wiki/Syntax)
     `<SingleVF>`   - is a single VF index (0-based) that is included into the pool
     `<FirstVF>`    - is the first VF index (0-based) that is included into the range
     `<LastVF>`     - is the last VF index (0-based) that is included into the range
@@ -318,6 +318,10 @@ Example:
 The selector for interface named `netpf0` and VF 0, 2 upto 7 (included 2 and 7) and 9 will look like:
 ````
 "pfNames": ["netpf0#0,2-7,9"]
+````
+The selector for any interface and VF 3 upto 7
+````
+"pfNames": [".*#3-7]
 ````
 The selector for PCI address `0000:86:00.0` and VF 0, 1, 3, 4 will look like:
 ````
